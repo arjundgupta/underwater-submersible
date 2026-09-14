@@ -1,5 +1,4 @@
 import { site } from '@/lib/content'
-import { PipeBand } from './PipeBand'
 import styles from './Colophon.module.css'
 
 /**
@@ -37,9 +36,6 @@ export function Colophon() {
           </a>
         </div>
       </div>
-
-
-      <PipeBand />
     </footer>
   )
 }

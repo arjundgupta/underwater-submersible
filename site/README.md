@@ -2,8 +2,8 @@
 
 Site for an underwater inspection ROV, built as a **neo-industrial field
 specification**: the real CAD as a live, interactive model, wrapped in the
-language of a printed technical document. Four movements: a plain-spoken
-foreword, the machine, the mission loop, and a colophon.
+language of a printed technical document. Three movements: a plain-spoken
+foreword, the machine, and a colophon.
 
 **The design system**, in `src/app/globals.css`:
 
@@ -31,9 +31,7 @@ foreword, the machine, the mission loop, and a colophon.
   reads well as a button on cream only manages 3:1 as small text on it.
   And `--accent-on` is the type that sits *on* an accent fill — near-black in
   both themes, since reaching for `--ink` there quietly inverted it on the
-  print theme. Every pair clears WCAG AA in both themes; `WATER`/`TRACE` in
-  `MissionScene.tsx` must track `--ink`/`--bone`, or the fog leaves a seam
-  where the pipe fades into the page.
+  print theme. Every pair clears WCAG AA in both themes.
 - **Bodoni Moda** (high-contrast Didone) for claims, **Azeret Mono**
   (squared-off, wide-tracked, uppercase) for everything a technician reads —
   labels, codes, readouts, and body copy.
@@ -50,8 +48,7 @@ the INSPECT readout and lights its row in the assembly index (and vice versa);
 clicking a part — or its row — isolates it; LOOK INSIDE steps through three
 states — the full machine, the shell and foam stripped to the white pressure
 tube, then the tube opened to the electronics themselves; the slider scrubs the
-fourteen-part disassembly; `+ / − / ⟲` control the view. `?only=shell,thrusters` renders just those hero parts; `?hold=0.45` freezes the
-mission sequence at any normalised time.
+fourteen-part disassembly; `+ / − / ⟲` control the view. `?only=shell,thrusters` renders just those hero parts.
 
 ```bash
 npm run dev
@@ -183,8 +180,7 @@ the duplicate-geometry bug above was found.
 | `src/components/FigurePeek.tsx` | The plate raised at the pointer by a term in the letter |
 | `src/lib/figures.ts` | The plates themselves — swap the placeholders here |
 | `src/components/Console.tsx` | The machine. Owns disassembly, isolation, picking and view state |
-| `src/components/Mission.tsx` | The looping inspection sequence below it |
-| `src/components/Colophon.tsx` | Revision record, stamps, machine marks |
+| `src/components/Colophon.tsx` | The foot of the page: the mark, and how to get in touch |
 | `src/lib/theme.ts` | Negative/print state, persistence, the hook the canvases read |
 | `src/components/three/RovModel.tsx` | Parts, explode choreography, real-CAD loader |
 | `src/components/three/proceduralRov.ts` | Stand-in machine, used only if the GLB is missing |

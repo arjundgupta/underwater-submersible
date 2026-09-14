@@ -49,7 +49,7 @@ export function useTheme(): Theme {
  * Inlined before paint so a saved light theme never flashes dark.
  *
  * `?theme=light` (or `dark`) overrides the saved value for that load without
- * writing to it — same family as `?only=` and `?hold=`. It exists because a
+ * writing to it — same family as `?only=`. It exists because a
  * command-line browser cannot reach localStorage, which makes it the only way
  * to capture the print theme for a screenshot or a shared PDF.
  */

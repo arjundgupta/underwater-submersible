@@ -1,5 +1,5 @@
 /* The foot of the page: the mark on one side, how to reach anyone on the
-   other, and the pipe running along the bottom under both. */
+   other. */
 
 .colophon {
   position: relative;
@@ -75,7 +75,7 @@
   min-width: 0;
 }
 
-/* The one label in the band. Without it the addresses read as data rather
+/* The one label in the footer. Without it the addresses read as data rather
    than as an invitation, which is the whole point of them being here. */
 .label {
   font-size: 0.56rem;
