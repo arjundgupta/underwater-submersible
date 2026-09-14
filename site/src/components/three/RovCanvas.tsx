@@ -17,95 +17,109 @@ export type Insets = { left?: number; right?: number; top?: number; bottom?: num
  * Keeps the machine inside its frame, whatever it is doing.
  *
  * Orthographic zoom is pixels-per-world-unit, so framing is a division rather
- * than a dolly. Rather than guessing a fixed extent, this measures the model's
- * bounding box every frame and projects its corners into camera space — so it
- * adapts as parts separate and as the viewer rotates it, and nothing can slide
- * off the edge. Parallel projection is what keeps the machine reading as a
- * measurable object rather than a photograph of one.
- */
-/**
- * How hard the fit is pushed, closed versus open.
+ * than a dolly. Rather than guessing a fixed extent, this measures the machine
+ * every frame — each part's own bounding box, carried through the part's
+ * transform straight into camera space — so it adapts as parts separate and as
+ * the viewer rotates it, and nothing can slide off the edge. Parallel
+ * projection is what keeps the machine reading as a measurable object rather
+ * than a photograph of one.
  *
- * Assembled, the machine is one compact object sitting in a tall frame, and
- * fitting it with a uniform margin left it floating in the middle of a lot of
- * nothing. Exploded, the same parts run as a stack the full height of the
- * section and need every bit of that room back. So the framing is not one
- * number: it tightens onto the machine at rest and eases off as the stack
- * opens, which is the zoom following the disassembly rather than ignoring it.
+ * Part by part, and in camera space, because the alternative is loose. The fit
+ * used to box the whole group in world axes and project that box's corners; a
+ * long body seen from the oblique default angle sat inside a box half again as
+ * wide and nearly twice as tall as what was drawn, and the framing had to be
+ * pushed 40% past the fit to close the gap — a number tuned to one angle and
+ * wrong at every other. A part's own box hugs the part however the machine is
+ * turned, and the union of those sits within a few percent of the silhouette
+ * across the screen, so the fit can simply be a fit.
  */
-const FILL = { closed: 1.42, open: 1.0 }
+
+/**
+ * Air around the machine, as a factor on its measured extent.
+ *
+ * Small, because the clear area already stands off the interface by a gap of
+ * its own (see the insets measured in Console), and because what is framed
+ * here is close to the real silhouette rather than a loose box around it. At
+ * 1.04 the machine takes 96% of the clear width; the rest is the gap and a
+ * little more.
+ */
+const MARGIN = 1.04
 
 /**
  * Extra push when something has been switched off.
  *
- * Stripping the shell away shrinks the bounding box, and a fit that only ever
- * matches the box holds the machine at the same apparent size — you ask to
- * look inside and get the same picture with less in it. Asking to see the
- * interior is asking to see it closer, so the frame closes in on what is
- * left.
+ * Stripping the shell away does not shrink what is drawn by much — the tube
+ * and the chassis inside it run nearly the full length of the hull — so a
+ * plain fit would answer LOOK INSIDE with the same picture and less in it.
+ * Asking to see the interior is asking to see it closer, so the frame closes
+ * in on what is left.
  *
- * Modest on purpose. Any fill above 1 spends slack the fit deliberately left,
- * and there is only slack on whichever axis is not binding — push it far
- * enough and the machine grows out past the insets and under the assembly
- * index. 1.2 did exactly that once the housing was exposed and the model was
- * at its longest.
+ * Exactly the margin, no more: that spends the air the fit leaves around the
+ * machine and stops at the edge of the clear area, so the interior grows into
+ * the gap beside the instruments and the index and never under them.
  */
-const REVEAL_FILL = 1.1
+const REVEAL_FILL = MARGIN
 
 function Frame({
   target,
   insets,
   scale,
-  explode,
   revealed,
-  margin = 1.08,
 }: {
   target: MutableRefObject<THREE.Group | null>
   /** Screen-space regions the model must keep out of, in CSS pixels. */
   insets?: Insets
   /** The viewer's zoom, multiplied onto the fitted zoom. */
   scale: MutableRefObject<number>
-  /** 0 assembled, 1 fully apart — see FILL. */
-  explode: MutableRefObject<number>
   /** True once anything has been switched off — see REVEAL_FILL. */
   revealed?: boolean
-  margin?: number
 }) {
   const { camera, size } = useThree()
-  const box = useMemo(() => new THREE.Box3(), [])
   const corner = useMemo(() => new THREE.Vector3(), [])
+  const toCamera = useMemo(() => new THREE.Matrix4(), [])
   const settled = useRef(false)
   const lastZoom = useRef(-1)
-  const lastOffset = useRef({ x: NaN, y: NaN })
+  const lastOffset = useRef({ x: Infinity, y: Infinity })
 
   useFrame((_, delta) => {
     const group = target.current
     if (!group) return
-
-    box.setFromObject(group)
-    if (box.isEmpty()) return
 
     let minX = Infinity
     let maxX = -Infinity
     let minY = Infinity
     let maxY = -Infinity
 
-    for (let i = 0; i < 8; i++) {
-      corner
-        .set(
-          i & 1 ? box.max.x : box.min.x,
-          i & 2 ? box.max.y : box.min.y,
-          i & 4 ? box.max.z : box.min.z,
-        )
-        .applyMatrix4(camera.matrixWorldInverse)
-      minX = Math.min(minX, corner.x)
-      maxX = Math.max(maxX, corner.x)
-      minY = Math.min(minY, corner.y)
-      maxY = Math.max(maxY, corner.y)
-    }
+    // Hidden parts are unmounted rather than switched off, but the visible
+    // walk is the right one regardless: the frame fits what is drawn.
+    group.updateWorldMatrix(true, true)
+    group.traverseVisible((object) => {
+      const geometry = (object as THREE.Mesh).geometry as THREE.BufferGeometry | undefined
+      if (!geometry) return
+      // Cached on the geometry, so each part pays for this once.
+      if (geometry.boundingBox === null) geometry.computeBoundingBox()
+      const bounds = geometry.boundingBox
+      if (!bounds || bounds.isEmpty()) return
 
-    const width = (maxX - minX) * margin
-    const height = (maxY - minY) * margin
+      toCamera.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld)
+      for (let i = 0; i < 8; i++) {
+        corner
+          .set(
+            i & 1 ? bounds.max.x : bounds.min.x,
+            i & 2 ? bounds.max.y : bounds.min.y,
+            i & 4 ? bounds.max.z : bounds.min.z,
+          )
+          .applyMatrix4(toCamera)
+        minX = Math.min(minX, corner.x)
+        maxX = Math.max(maxX, corner.x)
+        minY = Math.min(minY, corner.y)
+        maxY = Math.max(maxY, corner.y)
+      }
+    })
+    if (minX === Infinity) return
+
+    const width = (maxX - minX) * MARGIN
+    const height = (maxY - minY) * MARGIN
     if (width <= 0 || height <= 0) return
 
     // Fit into what the interface leaves free, not the whole canvas. The canvas
@@ -119,29 +133,74 @@ function Frame({
     const availWidth = Math.max(120, size.width - left - right)
     const availHeight = Math.max(120, size.height - top - bottom)
 
-    // Eased, not linear, so the machine does not lurch outward the instant the
-    // slider leaves zero.
-    const open = THREE.MathUtils.clamp(explode.current, 0, 1)
-    const fill =
-      THREE.MathUtils.lerp(FILL.closed, FILL.open, open * open * (3 - 2 * open)) *
-      (revealed ? REVEAL_FILL : 1)
-
+    const fill = revealed ? REVEAL_FILL : 1
     const wanted = Math.min(availWidth / width, availHeight / height) * scale.current * fill
+    /*
+     * Quick to back off, unhurried to close in.
+     *
+     * The stack opens with the same time constant the zoom used to follow it
+     * with, and a follower that lags what it follows leaves the parts running
+     * past the clear area — into the header and the footer — for the whole
+     * length of the animation, by a fifth at its worst. So the zoom is never
+     * allowed above the fit: backing off tracks the bound exactly, which is
+     * smooth because the bound itself moves smoothly, and only closing in is
+     * damped, which is the direction where the ease is actually seen.
+     */
     camera.zoom = settled.current
-      ? THREE.MathUtils.damp(camera.zoom, wanted, 3.2, delta)
+      ? Math.min(wanted, THREE.MathUtils.damp(camera.zoom, wanted, 3.2, delta))
       : wanted
 
     // Shift the projection so the free area's centre, not the canvas centre, is
-    // where the machine sits. A positive view offset looks further right/down
-    // into the frustum, which moves what you see the other way — hence negated.
-    const offsetX = (left - right) / 2
-    const offsetY = (top - bottom) / 2
-    const offsetChanged = offsetX !== lastOffset.current.x || offsetY !== lastOffset.current.y
+    // where the machine's origin sits. A positive view offset looks further
+    // right/down into the frustum, which moves what you see the other way —
+    // hence negated, below.
+    let shiftX = (left - right) / 2
+    let shiftY = (top - bottom) / 2
+
+    /*
+     * Then nudge it, but only as far as it has to go.
+     *
+     * The machine is not symmetric about its own origin once it comes apart —
+     * the stack reaches further one way than the other — so a stack that fits
+     * the clear area in size still ran out through the top of it. Centring
+     * the measured bound outright would fix that, and would also pin the
+     * machine dead still: the idle bob that reads as it hanging in water is
+     * cancelled by a frame that follows it. So the frame moves only when the
+     * bound would otherwise leave the clear area, by exactly the overhang, and
+     * otherwise leaves the machine where it drifts. Screen space here, pixels
+     * from the canvas centre, y down; the air is the margin's share of the
+     * slack, so the nudge keeps it rather than pushing flush to the edge.
+     */
+    const zoom = camera.zoom
+    const airX = ((MARGIN - 1) * (maxX - minX) * zoom) / 2
+    const airY = ((MARGIN - 1) * (maxY - minY) * zoom) / 2
+    const boundLeft = minX * zoom + shiftX
+    const boundRight = maxX * zoom + shiftX
+    const boundTop = -maxY * zoom + shiftY
+    const boundBottom = -minY * zoom + shiftY
+    const areaLeft = -size.width / 2 + left + airX
+    const areaRight = size.width / 2 - right - airX
+    const areaTop = -size.height / 2 + top + airY
+    const areaBottom = size.height / 2 - bottom - airY
+    // Stateless: measured from the base shift every frame, never from the last
+    // nudge, so it cannot hunt. On the binding axis the bound and the aired
+    // area are the same size to within rounding, and the top or left edge is
+    // simply the one that wins.
+    if (boundLeft < areaLeft) shiftX += areaLeft - boundLeft
+    else if (boundRight > areaRight) shiftX += areaRight - boundRight
+    if (boundTop < areaTop) shiftY += areaTop - boundTop
+    else if (boundBottom > areaBottom) shiftY += areaBottom - boundBottom
+
+    // To the quarter pixel: the machine breathes, and the nudge would
+    // otherwise move by a hair every frame and rebuild the projection for it.
+    const offsetChanged =
+      Math.abs(shiftX - lastOffset.current.x) > 0.25 ||
+      Math.abs(shiftY - lastOffset.current.y) > 0.25
     if (offsetChanged) {
-      lastOffset.current.x = offsetX
-      lastOffset.current.y = offsetY
-      if (offsetX || offsetY) {
-        camera.setViewOffset(size.width, size.height, -offsetX, -offsetY, size.width, size.height)
+      lastOffset.current.x = shiftX
+      lastOffset.current.y = shiftY
+      if (shiftX || shiftY) {
+        camera.setViewOffset(size.width, size.height, -shiftX, -shiftY, size.width, size.height)
       } else if (camera.view?.enabled) {
         camera.clearViewOffset()
       }
@@ -284,7 +343,6 @@ export function RovCanvas({
         target={model}
         insets={insets}
         scale={scale}
-        explode={explode}
         revealed={(hidden?.size ?? 0) > 0}
       />
 
