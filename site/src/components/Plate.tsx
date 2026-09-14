@@ -73,6 +73,8 @@ export function Plate({ active }: { active?: string | null }) {
         <span className={styles.captionText}>{figure.caption}</span>
       </p>
 
+      {/* An index of one is no index. It appears once there is a choice. */}
+      {figures.length > 1 && (
       <ul className={styles.index}>
         {figures.map((item, i) => (
           <li key={item.id}>
@@ -90,6 +92,7 @@ export function Plate({ active }: { active?: string | null }) {
           </li>
         ))}
       </ul>
+      )}
     </figure>
   )
 }

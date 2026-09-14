@@ -78,23 +78,23 @@ file. Text between `*asterisks*` in the headline is set in the accent colour.
 
 ### 2. Add the photographs
 
-The cover carries a **figure plate** beside the letter, and terms in the letter
-point at it — hovering "acrylic pressure tubes" raises the plate of the tubes,
-next to the pointer and in the panel at once.
+The cover carries a **figure plate** beside the letter. There is one plate for
+now — a see-through render of the whole assembly,
+`public/figures/assembly-see-through.webp` — and the panel's index of
+thumbnails only appears once there is more than one plate to choose from.
 
-All six plates are placeholders: `public/figures/plate-0*.svg`, a registration
-cross and the words PHOTOGRAPH PENDING, so an unfinished plate still reads as
-part of the document instead of as a broken image.
+To add a plate, drop the image in `public/figures/` and add an entry in
+[`src/lib/figures.ts`](src/lib/figures.ts) — that one file is the whole edit.
+Any format the browser shows works; landscape suits the frame, which crops to
+fill from the centre. Give it an `alt` that describes the actual picture, and a
+`caption` and `code`. The panel, its index, and the `NN / NN` counter all
+follow the array.
 
-To use real photographs, drop them in `public/figures/` and point `src` at them
-in [`src/lib/figures.ts`](src/lib/figures.ts) — that one file is the whole
-edit. Any format the browser shows works; landscape suits the frame, which
-crops to fill from the centre. Update `alt` to describe the actual photograph,
-and `caption`/`code` if the subject changes.
-
-To add or remove a plate, add or remove an entry — the panel, its index, and
-the `NN / NN` counter all follow the array. A term in the letter points at one
-by `id` via `fig`, alongside `href`; see `foreword` in `src/lib/content.ts`.
+A term in the letter can point at a plate by `id` via `fig`, alongside `href` —
+see `foreword` in `src/lib/content.ts`. Hovering such a term raises its plate
+next to the pointer and in the panel at once. Several terms already carry ids
+(`hull`, `housing`, `tether`, `field`) for plates still to come; until a plate
+with that id exists the term is simply left unmarked.
 
 The pointer callout is hover-only and hides itself where there is no hover, so
 on a phone the plate panel carries every image. The same terms are focusable,
@@ -178,7 +178,7 @@ the duplicate-geometry bug above was found.
 | `src/components/Foreword.tsx` | The cover letter; carries the opening sequence |
 | `src/components/Plate.tsx` | The figure plate beside the letter, and its index |
 | `src/components/FigurePeek.tsx` | The plate raised at the pointer by a term in the letter |
-| `src/lib/figures.ts` | The plates themselves — swap the placeholders here |
+| `src/lib/figures.ts` | The plates themselves — add them here |
 | `src/components/Console.tsx` | The machine. Owns disassembly, isolation, picking and view state |
 | `src/components/Colophon.tsx` | The foot of the page: the mark, and how to get in touch |
 | `src/lib/theme.ts` | Negative/print state, persistence, the hook the canvases read |
