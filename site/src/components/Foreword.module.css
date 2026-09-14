@@ -91,10 +91,17 @@
 /* The letter has a reading measure, which on a wide screen left the whole
    right-hand side of the cover empty. The plate column takes that space —
    sized to the gap rather than given a width of its own, so the measure keeps
-   the priority and the plate simply fills what is left. */
+   the priority and the plate simply fills what is left.
+
+   The two stay side by side all the way down to a tablet. The plate is
+   promised enough width to read as a plate rather than a thumbnail, and it is
+   the letter that gives up measure to make that room — at the narrow end it
+   is still some forty characters wide, which is a comfortable column.
+   Stacking sooner put the plate under the letter with a third of the screen
+   empty beside it. */
 .body {
   display: grid;
-  grid-template-columns: minmax(0, 60ch) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 60ch) minmax(340px, 1fr);
   gap: clamp(24px, 4vw, 64px);
   align-items: center;
   flex: 1;
@@ -331,20 +338,18 @@
 /* --- narrow ---------------------------------------------------------------- */
 
 /* Below this the plate stops being a margin and becomes the next thing you
-   read, under the letter.
-
-   Stacked earlier than the rest of the site's 900px breakpoint on purpose:
-   the letter holds its measure until it has to give it up, so the plate is
-   what gets squeezed, and by 950px it was down to 285px — a thumbnail with a
-   caption. Better to give it the full width one breakpoint sooner. */
-@media (max-width: 1080px) {
+   read, under the letter — and once it is under the letter it takes the whole
+   width. Capped at 560px on a 700px screen it left a bare strip down the
+   right-hand side; the letter keeps its measure, and the figure fills the
+   page the way a full-width plate does in a printed document. */
+@media (max-width: 760px) {
   .body {
     grid-template-columns: minmax(0, 1fr);
     gap: clamp(26px, 5vh, 44px);
   }
   .plateColumn {
-    max-width: 560px;
-    justify-self: start;
+    max-width: none;
+    justify-self: stretch;
   }
 }
 
