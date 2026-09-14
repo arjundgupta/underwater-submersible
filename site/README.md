@@ -47,8 +47,8 @@ foreword, the machine, and a colophon.
 the INSPECT readout and lights its row in the assembly index (and vice versa);
 clicking a part — or its row — isolates it; LOOK INSIDE steps through three
 states — the full machine, the shell and foam stripped to the white pressure
-tube, then the tube opened to the electronics themselves; the slider scrubs the
-fourteen-part disassembly; `+ / − / ⟲` control the view. `?only=shell,thrusters` renders just those hero parts.
+tube, then the tube opened to the electronics themselves; DISASSEMBLE opens the
+fourteen-part assembly and puts it back; `+ / − / ⟲` control the view. `?only=shell,thrusters` renders just those hero parts.
 
 ```bash
 npm run dev

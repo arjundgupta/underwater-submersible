@@ -25,7 +25,6 @@ export function Console() {
   const explodeTarget = useRef(0)
   const [open, setOpen] = useState(false)
   const [count, setCount] = useState(0)
-  const [scrub, setScrub] = useState(0)
   const [hot, setHot] = useState<string | null>(null)
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set())
   const [zoom, setZoom] = useState(1)
@@ -120,9 +119,8 @@ export function Console() {
     }
   }, [])
 
-  // One loop chasing a retargetable value, so the buttons and the scrub slider
-  // drive the same animation without fighting: buttons move the target and let
-  // the damp catch up, the slider sets both for a 1:1 feel.
+  // One loop chasing a retargetable value: the button moves the target and
+  // the damp catches up.
   //
   // It runs only while there is actually a gap to close. It used to run for
   // the life of the page — sixty wake-ups a second, each dispatching two state
@@ -130,7 +128,7 @@ export function Console() {
   // viewer was three sections away. On a phone that is the kind of idle cost
   // that shows up as battery rather than as jank, which makes it easy to miss.
   const frame = useRef(0)
-  const shown = useRef({ count: 0, scrub: 0 })
+  const shown = useRef({ count: 0 })
 
   const pump = useCallback(() => {
     if (frame.current) return
@@ -150,12 +148,6 @@ export function Console() {
         shown.current.count = nextCount
         setCount(nextCount)
       }
-      const nextScrub = Math.round(explode.current * 100)
-      if (nextScrub !== shown.current.scrub) {
-        shown.current.scrub = nextScrub
-        setScrub(nextScrub)
-      }
-
       frame.current = moving ? requestAnimationFrame(tick) : 0
     }
 
@@ -175,20 +167,6 @@ export function Console() {
     setOpen(opening)
     pump()
   }, [pump])
-
-  const scrubTo = useCallback(
-    (value: number) => {
-      explodeTarget.current = value
-      explode.current = value
-      setOpen(value > 0.5)
-      // Reflected immediately rather than waiting for the animation loop, so
-      // the thumb never snaps back under the pointer mid-drag.
-      shown.current.scrub = Math.round(value * 100)
-      setScrub(shown.current.scrub)
-      pump()
-    },
-    [pump],
-  )
 
   const togglePart = useCallback((id: string) => {
     setHidden((previous) => {
@@ -333,22 +311,6 @@ export function Console() {
               </div>
               <span className={styles.viewerRead}>{zoom.toFixed(2)}×</span>
             </div>
-
-            <label className={styles.scrub}>
-              <span className={styles.viewerLabel}>Disassembly</span>
-              <span className={styles.scrubRow}>
-                <input
-                  className={styles.scrubInput}
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={scrub}
-                  onChange={(event) => scrubTo(Number(event.target.value) / 100)}
-                  aria-label="Disassembly progress"
-                />
-                <span className={styles.viewerRead}>{scrub}%</span>
-              </span>
-            </label>
 
             {/* Names whatever the pointer is over — model or list. Holds its
                 line when nothing is, so the column does not jump. */}

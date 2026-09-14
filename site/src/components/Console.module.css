@@ -150,7 +150,6 @@
   gap: 10px;
 }
 
-.viewerLabel,
 .viewerRead {
   font-size: 0.56rem;
   letter-spacing: 0.24em;
@@ -193,68 +192,16 @@
   font-size: 0.72rem;
 }
 
-/* --- scrub + inspect ----------------------------------------------------- */
+/* --- inspect ------------------------------------------------------------- */
 
-.scrub {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-}
-
-.scrubRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.scrubInput {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 150px;
-  height: 18px;
-  background: transparent;
-  cursor: ew-resize;
-}
-
-.scrubInput::-webkit-slider-runnable-track {
-  height: 1px;
-  background: var(--rule);
-}
-
-.scrubInput::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 9px;
-  height: 15px;
-  margin-top: -7px;
-  background: var(--bone);
-  border: 1px solid var(--ink);
-}
-
-.scrubInput::-moz-range-track {
-  height: 1px;
-  background: var(--rule);
-}
-
-.scrubInput::-moz-range-thumb {
-  width: 9px;
-  height: 15px;
-  border-radius: 0;
-  background: var(--bone);
-  border: 1px solid var(--ink);
-}
-
-.scrubInput:hover::-webkit-slider-thumb,
-.scrubInput:focus-visible::-webkit-slider-thumb {
-  background: var(--accent);
-}
-
-.scrubInput:hover::-moz-range-thumb,
-.scrubInput:focus-visible::-moz-range-thumb {
-  background: var(--accent);
-}
-
+/* Names whatever the pointer is over. It has no width of its own: the
+   instrument column is measured to keep the machine clear of it, and a
+   readout that widened the column with every part name would shove the model
+   sideways on each hover. The line overflows into the empty field beside it
+   instead, where there is nothing for it to collide with. */
 .inspect {
+  width: 0;
+  min-width: 0;
   font-size: 0.62rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -366,10 +313,6 @@
   }
   .control {
     padding: 14px 22px;
-  }
-  /* The slider's thumb is the one target that cannot be padded into place. */
-  .scrubInput {
-    height: 34px;
   }
 }
 
@@ -615,10 +558,8 @@
   .indexHint {
     display: none;
   }
-  /* The instrument row has to be able to break. On a 320px screen — more so
-     with the enlarged touch targets — the keys, the zoom readout and the
-     scrubber do not fit on one line, and without this the slider and its
-     percentage are simply clipped off the edge of the screen. */
+  /* Laid out as a row rather than a column, and allowed to break in case a
+     narrow screen with enlarged touch targets ever needs it. */
   .viewer {
     grid-column: 1;
     grid-row: 2;
@@ -630,27 +571,10 @@
     row-gap: 8px;
     padding: 0;
   }
-  /* Stacked, there is no column to head — the label only earns its line in
-     the desktop column. */
-  .viewerLabel,
+  /* Stacked, the readout has no column to sit under — it only earns its line
+     in the desktop column. */
   .inspect {
     display: none;
-  }
-  .scrub {
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .scrubRow {
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-  .scrubInput {
-    width: min(34vw, 150px);
-    min-width: 72px;
-    flex: 1 1 auto;
   }
   /* Stacked: the copy sits above the instrument row, and the rule that
      divided them on desktop goes with the column it belonged to. */
