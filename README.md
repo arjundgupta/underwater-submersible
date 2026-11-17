@@ -21,8 +21,6 @@ Won an Ingenious+ innovation award from the Rideau Hall Foundation.
 
 Shows the real CAD as an interactive 3D model. You can rotate it, take it apart, or look inside the pressure tube.
 
-Built with Next.js, React, and three.js.
-
 ## Structure
 
 ```
