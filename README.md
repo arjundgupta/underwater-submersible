@@ -23,7 +23,7 @@ Shows the real CAD as an interactive 3D model. You can rotate it, take it apart,
 
 ## Tech
 
-next.js, react, three.js
+next.js, three.js
 
 ## Structure
 
